@@ -8,5 +8,6 @@
     "axios": "^0.19.2"
   },
   "devDependencies": {
+    "prettier": "^2.0.5"
   }
 }
