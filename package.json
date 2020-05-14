@@ -1,13 +1,14 @@
 {
   "name": "logflare-transport-core",
   "version": "0.1.0",
-  "main": "index.js",
-  "license": "MIT"
+  "main": "dist/main.js",
+  "license": "MIT",
   "dependencies": {
-    "@types/axios": "^0.14.0",
     "axios": "^0.19.2"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/es6-promise": "^3.3.0",
     "prettier": "^2.0.5"
   }
 }

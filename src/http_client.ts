@@ -1,4 +1,5 @@
 import axios, {AxiosInstance, AxiosResponse} from "axios"
+import {Promise} from "es6-promise"
 
 interface LogflareUserOptions {
     sourceToken: string
@@ -6,6 +7,10 @@ interface LogflareUserOptions {
     batchFlushInterval?: number
     batchMaxSize?: number
     apiBaseUrl?: string
+}
+
+interface LogflareTransport {
+    readonly httpClient: LogflareHttpClient
 }
 
 const defaultOptions = {
@@ -72,8 +77,7 @@ class LogflareHttpClient {
     }
 
     private _handleResponse = ({data}: AxiosResponse) => data
-
     protected _handleError = (error: any) => Promise.reject(error)
 }
 
-export {LogflareHttpClient}
+export {LogflareHttpClient, LogflareTransport}
