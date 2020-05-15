@@ -1,5 +1,5 @@
 import axios, {AxiosInstance, AxiosResponse} from "axios"
-import {Promise} from "es6-promise"
+import stream from "stream"
 
 interface LogflareUserOptions {
     sourceToken: string
@@ -29,6 +29,13 @@ class LogflareHttpClient {
 
     public constructor(options: LogflareUserOptions) {
         this.sourceToken = options.sourceToken
+        if (!options.sourceToken) {
+            throw "Logflare API logging transport source token is NOT configured!"
+        }
+
+        if (!options.apiKey) {
+            throw "Logflare API logging transport api key is NOT configured!"
+        }
         this.batch = []
         this.axiosInstance = axios.create({
             baseURL: options.apiBaseUrl,
@@ -49,15 +56,32 @@ class LogflareHttpClient {
         this._initializeResponseInterceptor()
     }
 
-    public addLogEvent(logEvent: object) {
-        this.batch.push(logEvent)
+    public async addLogEvent(logEvent: object | [object]) {
+        const toConcat = Array.isArray(logEvent) ? logEvent : [logEvent]
+        this.batch = this.batch.concat(toConcat)
 
         if (this.batch.length >= this.maxBatchSize) {
             this.flushBatch()
         }
     }
 
-    private flushBatch() {
+    public insertStream() {
+        const self = this
+        const writeStream = new stream.Writable({
+            objectMode: true,
+            highWaterMark: 1,
+        })
+        writeStream._write = function (chunk, encoding, callback) {
+            self.addLogEvent(chunk)
+                .then(() => {
+                    callback(null)
+                })
+                .catch(callback)
+        }
+        return writeStream
+    }
+
+    private async flushBatch() {
         if (this.batch.length > 0) {
             const batchInFlight = [...this.batch]
             this.batch = []
@@ -65,7 +89,7 @@ class LogflareHttpClient {
                 batch: batchInFlight,
                 source: this.sourceToken,
             }
-            this.axiosInstance.post("/logs", payload)
+            return this.axiosInstance.post("/logs", payload)
         }
     }
 
