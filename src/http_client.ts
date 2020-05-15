@@ -53,6 +53,8 @@ class LogflareHttpClient {
             this.batchFlushInterval
         )
 
+        this.batchFlushTimer.unref()
+
         this._initializeResponseInterceptor()
     }
 
