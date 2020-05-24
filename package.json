@@ -11,5 +11,13 @@
     "@types/axios": "^0.14.0",
     "@types/es6-promise": "^3.3.0",
     "prettier": "^2.0.5"
-  }
+  },
+  "scripts": {
+    "prepublish": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logflare/logflare-transport-core-js.git"
+  },
+  "types": "dist/index.d.ts"
 }
