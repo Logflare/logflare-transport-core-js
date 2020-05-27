@@ -40,12 +40,37 @@ describe("LogflareHttpClient", () => {
                 JSON.stringify({batch: [le], source: testSourceToken})
             )
 
-
-            await request.respondWith({status: 200, response: apiResponseSuccess})
+            await request.respondWith({
+                status: 200,
+                response: apiResponseSuccess,
+            })
             done()
         })
 
         const response = await httpClient.addLogEvent(le)
         expect(response).toMatchObject(apiResponseSuccess)
+    })
+
+    let consoleLogData = ""
+    const storeLog = (inputs) => (consoleLogData += inputs)
+    it("prints to console on error", async (done) => {
+        console["error"] = jest.fn(storeLog)
+
+        const le = {message: "info log msg", metadata: {p1: "v1"}}
+
+        moxios.wait(async () => {
+            let request = moxios.requests.mostRecent()
+
+            await request.respondWith({
+                status: 406,
+                response: {message: "Schema validation error"},
+            })
+            done()
+        })
+
+        await httpClient.addLogEvent(le)
+        expect(consoleLogData).toBe(
+            'Logflare API request failed with 406 status: {"message":"Schema validation error"}'
+        )
     })
 })

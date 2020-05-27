@@ -61,7 +61,12 @@ class LogflareHttpClient {
             batch,
             source: this.sourceToken,
         }
-        return this.axiosInstance.post("/logs", payload)
+        try {
+            return await this.axiosInstance.post("/logs", payload)
+        } catch (e) {
+            console.error(`Logflare API request failed with ${e.response.status} status: ${JSON.stringify(e.response.data)}`)
+            return e
+        }
     }
 
     private _initializeResponseInterceptor = () => {
