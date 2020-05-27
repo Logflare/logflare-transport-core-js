@@ -4,67 +4,40 @@ import stream from "stream"
 interface LogflareUserOptions {
     sourceToken: string
     apiKey: string
-    batchFlushInterval?: number
-    batchMaxSize?: number
     apiBaseUrl?: string
-}
-
-interface LogflareTransport {
-    readonly httpClient: LogflareHttpClient
 }
 
 const defaultOptions = {
     apiBaseUrl: "https://api.logflare.app",
-    batchFlushInterval: 1000,
-    maxBatchSize: 100,
 }
 
 class LogflareHttpClient {
-    protected readonly axiosInstance: AxiosInstance
+    protected axiosInstance: AxiosInstance
     protected readonly sourceToken: string
-    protected readonly batchFlushInterval: number
-    protected readonly maxBatchSize: number
-    protected batch: object[]
-    protected readonly batchFlushTimer: any
 
     public constructor(options: LogflareUserOptions) {
-        this.sourceToken = options.sourceToken
-        if (!options.sourceToken) {
+        const {sourceToken, apiKey} = options
+        if (!sourceToken || sourceToken == "") {
             throw "Logflare API logging transport source token is NOT configured!"
         }
-
-        if (!options.apiKey) {
+        if (!apiKey || apiKey == "") {
             throw "Logflare API logging transport api key is NOT configured!"
         }
-        this.batch = []
+        this.sourceToken = sourceToken
         this.axiosInstance = axios.create({
-            baseURL: options.apiBaseUrl,
+            baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
             headers: {
                 "Content-Type": "application/json",
-                "X-API-KEY": options.apiKey,
+                "X-API-KEY": apiKey,
             },
         })
-
-        this.maxBatchSize = options.batchMaxSize ?? defaultOptions.maxBatchSize
-        this.batchFlushInterval =
-            options.batchFlushInterval ?? defaultOptions.batchFlushInterval
-        this.batchFlushTimer = setInterval(
-            () => this.flushBatch(),
-            this.batchFlushInterval
-        )
-
-        this.batchFlushTimer.unref()
 
         this._initializeResponseInterceptor()
     }
 
-    public async addLogEvent(logEvent: object | [object]) {
-        const toConcat = Array.isArray(logEvent) ? logEvent : [logEvent]
-        this.batch = this.batch.concat(toConcat)
-
-        if (this.batch.length >= this.maxBatchSize) {
-            this.flushBatch()
-        }
+    public async addLogEvent(logEvent: object | object[]): Promise<object> {
+        const logEvents = Array.isArray(logEvent) ? logEvent : [logEvent]
+        return this.postLogEvents(logEvents)
     }
 
     public insertStream() {
@@ -83,16 +56,12 @@ class LogflareHttpClient {
         return writeStream
     }
 
-    private async flushBatch() {
-        if (this.batch.length > 0) {
-            const batchInFlight = [...this.batch]
-            this.batch = []
-            const payload = {
-                batch: batchInFlight,
-                source: this.sourceToken,
-            }
-            return this.axiosInstance.post("/logs", payload)
+    private async postLogEvents(batch: object[]) {
+        const payload = {
+            batch,
+            source: this.sourceToken,
         }
+        return this.axiosInstance.post("/logs", payload)
     }
 
     private _initializeResponseInterceptor = () => {
@@ -106,4 +75,4 @@ class LogflareHttpClient {
     protected _handleError = (error: any) => Promise.reject(error)
 }
 
-export {LogflareHttpClient, LogflareTransport}
+export {LogflareHttpClient}
