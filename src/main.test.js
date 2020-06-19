@@ -74,3 +74,54 @@ describe("LogflareHttpClient", () => {
         )
     })
 })
+
+describe("LogflareHttpClient with options", () => {
+    let httpClient
+    let axiosInstance
+    beforeEach(() => {
+        httpClient = new LogflareHttpClient({
+            apiKey: "testApiKey",
+            sourceToken: "2222-2222",
+            apiBaseUrl: "http://non-existing.domain",
+            transforms: {jsNumbers: true},
+        })
+        const axiosInstance = httpClient.axiosInstance
+        moxios.install(axiosInstance)
+    })
+
+    afterEach(() => {
+        moxios.uninstall(axiosInstance)
+    })
+
+    it("trarnsforms js numbers if configured", async (done) => {
+        const le = {
+            message: "info log msg",
+            metadata: {number: 1, number2: 1.0},
+        }
+
+        moxios.wait(async () => {
+            let request = moxios.requests.mostRecent()
+
+            expect(request.config.baseURL).toBe(testBaseUrl)
+            expect(request.headers).toMatchObject({
+                Accept: "application/json, text/plain, */*",
+                "Content-Type": "application/json",
+                "X-API-KEY": "testApiKey",
+            })
+
+            console.log(request.config.data)
+            expect(request.config.data).toBe(
+                '{"batch":[{"body":{"message":"info log msg","metadata":{"number":"1","number2":"1"}},"typecasts":[{"keys":["metadata","number"],"from":"string","to":"number"},{"keys":["metadata","number2"],"from":"string","to":"number"}]}],"source":"2222-2222"}'
+            )
+
+            await request.respondWith({
+                status: 200,
+                response: apiResponseSuccess,
+            })
+            done()
+        })
+
+        const response = await httpClient.addLogEvent(le)
+        expect(response).toMatchObject(apiResponseSuccess)
+    })
+})

@@ -1,7 +1,7 @@
 import bigInteger from "big-integer"
 import bigNumber from "bignumber.js"
 import {Decimal} from "decimal.js"
-import {applyTypecasting} from "./typecasting"
+import {applyNumberToStringTypecasting} from "./typecasting"
 
 const typecastingUnit = {
     numberField: 100,
@@ -45,7 +45,10 @@ describe("Typecasting", () => {
             },
         }
 
-        const {body: processedEvent, typecasts} = applyTypecasting(event)
+        const {
+            body: processedEvent,
+            typecasts,
+        } = applyNumberToStringTypecasting(event)
 
         expect(processedEvent).toEqual({
             message: "message",

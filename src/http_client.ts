@@ -1,10 +1,17 @@
 import axios, {AxiosInstance, AxiosResponse} from "axios"
+import _ from "lodash"
+import {
+    applyNumberToStringTypecasting,
+    applyCustomTypecasting,
+} from "./typecasting"
 import stream from "stream"
 
 interface LogflareUserOptions {
     sourceToken: string
     apiKey: string
     apiBaseUrl?: string
+    typecasts?: object[]
+    transforms?: object
 }
 
 const defaultOptions = {
@@ -14,15 +21,18 @@ const defaultOptions = {
 class LogflareHttpClient {
     protected axiosInstance: AxiosInstance
     protected readonly sourceToken: string
+    protected readonly typecasts?: object[] | undefined
+    protected readonly transforms?: object
 
     public constructor(options: LogflareUserOptions) {
-        const {sourceToken, apiKey} = options
+        const {sourceToken, apiKey, transforms} = options
         if (!sourceToken || sourceToken == "") {
             throw "Logflare API logging transport source token is NOT configured!"
         }
         if (!apiKey || apiKey == "") {
             throw "Logflare API logging transport api key is NOT configured!"
         }
+        this.transforms = transforms
         this.sourceToken = sourceToken
         this.axiosInstance = axios.create({
             baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
@@ -36,7 +46,13 @@ class LogflareHttpClient {
     }
 
     public async addLogEvent(logEvent: object | object[]): Promise<object> {
-        const logEvents = Array.isArray(logEvent) ? logEvent : [logEvent]
+        let logEvents = Array.isArray(logEvent) ? logEvent : [logEvent]
+        if (this.typecasts) {
+            logEvents = _.map(logEvents, (le) => applyCustomTypecasting(le, this.typecasts))
+        }
+        if (this?.transforms?.jsNumbers) {
+            logEvents = _.map(logEvents, applyNumberToStringTypecasting)
+        }
         return this.postLogEvents(logEvents)
     }
 
@@ -64,7 +80,11 @@ class LogflareHttpClient {
         try {
             return await this.axiosInstance.post("/logs", payload)
         } catch (e) {
-            console.error(`Logflare API request failed with ${e.response.status} status: ${JSON.stringify(e.response.data)}`)
+            console.error(
+                `Logflare API request failed with ${
+                    e.response.status
+                } status: ${JSON.stringify(e.response.data)}`
+            )
             return e
         }
     }

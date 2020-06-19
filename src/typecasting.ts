@@ -3,8 +3,6 @@ import bigInteger from "big-integer"
 import bigNumber from "bignumber.js"
 import {Decimal} from "decimal.js"
 
-const {isObject, isNumber, isArray, pickBy, compact, identity, mapValues} = _
-
 const preprocessNumbers = (
     value: object,
     keys: string[],
@@ -39,7 +37,15 @@ const rememberTypecastings = (
     }
 }
 
-const applyTypecasting = (payload: object) => {
+const applyCustomTypecasting = (
+    payload: object,
+    typecastingRules?: object[]
+) => {
+    const {body, typecasts} = applyNumberToStringTypecasting(payload)
+    return {body, typecasts}
+}
+
+const applyNumberToStringTypecasting = (payload: object) => {
     let typecasts: object[] = []
     const body = mapValuesDeep(payload, preprocessNumbers, [], typecasts)
     typecasts = _.map(typecasts, ({keys, from, to}) => {
@@ -73,15 +79,11 @@ const mapValuesDeep = (
         }
     }
     return mapFn(obj, (val, key) => {
-        // console.log(keys)
         let keysNext = keys.concat(key)
-        // if (_.isString(key)) {
-        //     keysNext = (keys || []).concat(key)
-        // }
         return _.isPlainObject(val) || _.isArray(val)
             ? mapValuesDeep(val, fn, keysNext, typecasts)
             : fn(val, keysNext, typecasts)
     })
 }
 
-export {applyTypecasting}
+export {applyCustomTypecasting, applyNumberToStringTypecasting}
