@@ -3,10 +3,16 @@ import bigInteger from "big-integer"
 import bigNumber from "bignumber.js"
 import {Decimal} from "decimal.js"
 
+interface TypecastI {
+    path: string[]
+    from: string
+    to: string
+}
+
 const preprocessNumbers = (
     value: object,
     keys: string[],
-    typecasts: object[]
+    typecasts: TypecastI[]
 ) => {
     const type = typeof value
     if (
@@ -24,15 +30,15 @@ const preprocessNumbers = (
 }
 
 const rememberTypecastings = (
-    typecasts: object[],
+    typecasts: TypecastI[],
     keys: string[],
     type: string
 ) => {
     if (type === "number_to_string") {
         typecasts.push({
-            keys: keys,
+            path: keys,
             from: "string",
-            to: "number",
+            to: "float",
         })
     }
 }
@@ -46,12 +52,22 @@ const applyCustomTypecasting = (
 }
 
 const applyNumberToStringTypecasting = (payload: object) => {
-    let typecasts: object[] = []
-    const body = mapValuesDeep(payload, preprocessNumbers, [], typecasts)
-    typecasts = _.map(typecasts, ({keys, from, to}) => {
-        const filteredKeys = keys.filter((k: string | number) => _.isString(k))
+    let typecasts: TypecastI[] = []
+    const body = {
+        ...payload,
+        ...{
+            metadata: mapValuesDeep(
+                payload.metadata,
+                preprocessNumbers,
+                [],
+                typecasts
+            ),
+        },
+    }
+    typecasts = _.map(typecasts, ({path, from, to}) => {
+        const filteredKeys = path.filter((k: string | number) => _.isString(k))
         return {
-            keys: filteredKeys,
+            path: ["metadata", ...filteredKeys],
             from,
             to,
         }
@@ -65,7 +81,7 @@ const applyNumberToStringTypecasting = (payload: object) => {
 const mapValuesDeep = (
     obj: object,
     fn,
-    keys: string[],
+    path: string[],
     typecasts: object[]
 ): object => {
     const mapFn = (
@@ -78,11 +94,11 @@ const mapValuesDeep = (
             return _.map(container, mapper)
         }
     }
-    return mapFn(obj, (val, key) => {
-        let keysNext = keys.concat(key)
+    return mapFn(obj, (val: object | object[], key: string) => {
+        let keyPathNext = path.concat(key)
         return _.isPlainObject(val) || _.isArray(val)
-            ? mapValuesDeep(val, fn, keysNext, typecasts)
-            : fn(val, keysNext, typecasts)
+            ? mapValuesDeep(val, fn, keyPathNext, typecasts)
+            : fn(val, keyPathNext, typecasts)
     })
 }
 

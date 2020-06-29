@@ -21,7 +21,6 @@ const defaultOptions = {
 class LogflareHttpClient {
     protected axiosInstance: AxiosInstance
     protected readonly sourceToken: string
-    protected readonly typecasts?: object[] | undefined
     protected readonly transforms?: object
 
     public constructor(options: LogflareUserOptions) {

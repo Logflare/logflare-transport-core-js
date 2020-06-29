@@ -110,7 +110,7 @@ describe("LogflareHttpClient with options", () => {
             })
 
             expect(request.config.data).toBe(
-                '{"batch":[{"body":{"message":"info log msg","metadata":{"number":"1","number2":"1"}},"typecasts":[{"keys":["metadata","number"],"from":"string","to":"number"},{"keys":["metadata","number2"],"from":"string","to":"number"}]}],"source":"2222-2222"}'
+                '{"batch":[{"body":{"message":"info log msg","metadata":{"number":"1","number2":"1"}},"typecasts":[{"path":["metadata","number"],"from":"string","to":"float"},{"path":["metadata","number2"],"from":"string","to":"float"}]}],"source":"2222-2222"}'
             )
 
             await request.respondWith({

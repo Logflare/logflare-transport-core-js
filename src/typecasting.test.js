@@ -27,6 +27,7 @@ describe("Typecasting", () => {
     it("properly casts numbers", async (done) => {
         const event = {
             message: "message",
+            timestamp: 1593441149299,
             metadata: {
                 metrics: typecastingUnit,
                 nested: {
@@ -52,6 +53,7 @@ describe("Typecasting", () => {
 
         expect(processedEvent).toEqual({
             message: "message",
+            timestamp: 1593441149299,
             metadata: {
                 metrics: {
                     numberField: "100",
@@ -80,67 +82,67 @@ describe("Typecasting", () => {
 
         expect(typecasts).toEqual([
             {
-                keys: ["metadata", "metrics", "numberField"],
+                path: ["metadata", "metrics", "numberField"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "metrics", "numberField2"],
+                path: ["metadata", "metrics", "numberField2"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "metrics", "bigInt"],
+                path: ["metadata", "metrics", "bigInt"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "metrics", "big-integer"],
+                path: ["metadata", "metrics", "big-integer"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "metrics", "bignumber.js"],
+                path: ["metadata", "metrics", "bignumber.js"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "metrics", "decimal.js"],
+                path: ["metadata", "metrics", "decimal.js"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "nested", "array1", "numberField"],
+                path: ["metadata", "nested", "array1", "numberField"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "nested", "array1", "numberField2"],
+                path: ["metadata", "nested", "array1", "numberField2"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "nested", "array1", "bigInt"],
+                path: ["metadata", "nested", "array1", "bigInt"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "nested", "array1", "big-integer"],
+                path: ["metadata", "nested", "array1", "big-integer"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "nested", "array1", "bignumber.js"],
+                path: ["metadata", "nested", "array1", "bignumber.js"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: ["metadata", "nested", "array1", "decimal.js"],
+                path: ["metadata", "nested", "array1", "decimal.js"],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -148,10 +150,10 @@ describe("Typecasting", () => {
                     "numberField",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -159,10 +161,10 @@ describe("Typecasting", () => {
                     "numberField2",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -170,10 +172,10 @@ describe("Typecasting", () => {
                     "bigInt",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -181,10 +183,10 @@ describe("Typecasting", () => {
                     "big-integer",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -192,10 +194,10 @@ describe("Typecasting", () => {
                     "bignumber.js",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -203,10 +205,10 @@ describe("Typecasting", () => {
                     "decimal.js",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -214,10 +216,10 @@ describe("Typecasting", () => {
                     "numberField",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -225,10 +227,10 @@ describe("Typecasting", () => {
                     "numberField2",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -236,10 +238,10 @@ describe("Typecasting", () => {
                     "bigInt",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -247,10 +249,10 @@ describe("Typecasting", () => {
                     "big-integer",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -258,10 +260,10 @@ describe("Typecasting", () => {
                     "bignumber.js",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "array1",
@@ -269,10 +271,10 @@ describe("Typecasting", () => {
                     "decimal.js",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "nested1",
@@ -281,10 +283,10 @@ describe("Typecasting", () => {
                     "numberField",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "nested1",
@@ -293,10 +295,10 @@ describe("Typecasting", () => {
                     "numberField2",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "nested1",
@@ -305,10 +307,10 @@ describe("Typecasting", () => {
                     "bigInt",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "nested1",
@@ -317,10 +319,10 @@ describe("Typecasting", () => {
                     "big-integer",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "nested1",
@@ -329,10 +331,10 @@ describe("Typecasting", () => {
                     "bignumber.js",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
             {
-                keys: [
+                path: [
                     "metadata",
                     "nested",
                     "nested1",
@@ -341,7 +343,7 @@ describe("Typecasting", () => {
                     "decimal.js",
                 ],
                 from: "string",
-                to: "number",
+                to: "float",
             },
         ])
         done()
