@@ -12,6 +12,7 @@ interface LogflareUserOptions {
     apiBaseUrl?: string
     typecasts?: object[]
     transforms?: object
+    endpoint: string
 }
 
 const defaultOptions = {
@@ -22,9 +23,10 @@ class LogflareHttpClient {
     protected axiosInstance: AxiosInstance
     protected readonly sourceToken: string
     protected readonly transforms?: object
+    protected readonly endpoint?: string
 
     public constructor(options: LogflareUserOptions) {
-        const {sourceToken, apiKey, transforms} = options
+        const {sourceToken, apiKey, transforms, endpoint} = options
         if (!sourceToken || sourceToken == "") {
             throw "Logflare API logging transport source token is NOT configured!"
         }
@@ -33,6 +35,7 @@ class LogflareHttpClient {
         }
         this.transforms = transforms
         this.sourceToken = sourceToken
+        this.endpoint = endpoint
         this.axiosInstance = axios.create({
             baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
             headers: {
@@ -69,12 +72,18 @@ class LogflareHttpClient {
     }
 
     private async postLogEvents(batch: object[]) {
+        let url
+        if (this.endpoint === "typecasting") {
+            url = "/logs/typecasts"
+        } else {
+            url = "/logs"
+        }
         const payload = {
             batch,
             source: this.sourceToken,
         }
         try {
-            return await this.axiosInstance.post("/logs", payload)
+            return await this.axiosInstance.post(url, payload)
         } catch (e) {
             console.error(
                 `Logflare API request failed with ${
