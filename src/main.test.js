@@ -109,7 +109,6 @@ describe("LogflareHttpClient with options", () => {
                 "X-API-KEY": "testApiKey",
             })
 
-            console.log(request.config.data)
             expect(request.config.data).toBe(
                 '{"batch":[{"body":{"message":"info log msg","metadata":{"number":"1","number2":"1"}},"typecasts":[{"keys":["metadata","number"],"from":"string","to":"number"},{"keys":["metadata","number2"],"from":"string","to":"number"}]}],"source":"2222-2222"}'
             )

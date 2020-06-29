@@ -47,9 +47,6 @@ class LogflareHttpClient {
 
     public async addLogEvent(logEvent: object | object[]): Promise<object> {
         let logEvents = Array.isArray(logEvent) ? logEvent : [logEvent]
-        if (this.typecasts) {
-            logEvents = _.map(logEvents, (le) => applyCustomTypecasting(le, this.typecasts))
-        }
         if (this?.transforms?.jsNumbers) {
             logEvents = _.map(logEvents, applyNumberToStringTypecasting)
         }
