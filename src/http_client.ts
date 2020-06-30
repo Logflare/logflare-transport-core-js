@@ -6,11 +6,10 @@ import {
 } from "./typecasting"
 import stream from "stream"
 
-interface LogflareUserOptions {
+interface LogflareUserOptionsI {
     sourceToken: string
     apiKey: string
     apiBaseUrl?: string
-    typecasts?: object[]
     transforms?: object
     endpoint: string
 }
@@ -25,7 +24,7 @@ class LogflareHttpClient {
     protected readonly transforms?: object
     protected readonly endpoint?: string
 
-    public constructor(options: LogflareUserOptions) {
+    public constructor(options: LogflareUserOptionsI) {
         const {sourceToken, apiKey, transforms, endpoint} = options
         if (!sourceToken || sourceToken == "") {
             throw "Logflare API logging transport source token is NOT configured!"
@@ -105,4 +104,4 @@ class LogflareHttpClient {
     protected _handleError = (error: any) => Promise.reject(error)
 }
 
-export {LogflareHttpClient}
+export {LogflareHttpClient, LogflareUserOptionsI}

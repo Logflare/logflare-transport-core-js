@@ -1,3 +1,3 @@
-import {LogflareHttpClient} from "./http_client"
+import {LogflareHttpClient, LogflareUserOptionsI} from "./http_client"
 
-export {LogflareHttpClient}
+export {LogflareHttpClient, LogflareUserOptionsI}

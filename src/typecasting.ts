@@ -9,6 +9,12 @@ interface TypecastI {
     to: string
 }
 
+interface LogflareLogEventParamsI {
+    metadata: object
+    message: string
+    timestamp: number
+}
+
 const preprocessNumbers = (
     value: object,
     keys: string[],
@@ -44,16 +50,18 @@ const rememberTypecastings = (
 }
 
 const applyCustomTypecasting = (
-    payload: object,
+    payload: LogflareLogEventParamsI,
     typecastingRules?: object[]
 ) => {
     const {body, typecasts} = applyNumberToStringTypecasting(payload)
     return {body, typecasts}
 }
 
-const applyNumberToStringTypecasting = (payload: object) => {
+const applyNumberToStringTypecasting = (
+    payload: LogflareLogEventParamsI
+): {body: LogflareLogEventParamsI; typecasts: TypecastI[]} => {
     let typecasts: TypecastI[] = []
-    const body = {
+    const body: LogflareLogEventParamsI = {
         ...payload,
         ...{
             metadata: mapValuesDeep(
