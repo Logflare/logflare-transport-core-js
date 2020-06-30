@@ -84,11 +84,18 @@ class LogflareHttpClient {
         try {
             return await this.axiosInstance.post(url, payload)
         } catch (e) {
-            console.error(
-                `Logflare API request failed with ${
-                    e.response.status
-                } status: ${JSON.stringify(e.response.data)}`
-            )
+            if (e.response) {
+                console.error(
+                    `Logflare API request failed with ${
+                        e.response.status
+                    } status: ${JSON.stringify(e.response.data)}`
+                )
+            } else if (e.request) {
+                console.error(`Logflare API request failed: ${e.request}`)
+            } else {
+                console.error(e.message)
+            }
+
             return e
         }
     }
