@@ -28,7 +28,6 @@
     "prettier": "^2.0.5"
   },
   "scripts": {
-    "prepublish": "tsc",
     "test": "jest",
     "test.watch": "jest --watch"
   },
