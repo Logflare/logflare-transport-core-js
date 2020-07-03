@@ -50,6 +50,7 @@ var defaultOptions = {
 var LogflareHttpClient = /** @class */ (function () {
     function LogflareHttpClient(options) {
         var _this = this;
+        var _a;
         this._initializeResponseInterceptor = function () {
             _this.axiosInstance.interceptors.response.use(_this._handleResponse, _this._handleError);
         };
@@ -68,6 +69,8 @@ var LogflareHttpClient = /** @class */ (function () {
         this.transforms = transforms;
         this.sourceToken = sourceToken;
         this.endpoint = endpoint;
+        this.fromBrowser = (_a = options.fromBrowser) !== null && _a !== void 0 ? _a : false;
+        this.apiKey = apiKey;
         this.axiosInstance = axios_1.default.create({
             baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
             headers: {
@@ -116,6 +119,9 @@ var LogflareHttpClient = /** @class */ (function () {
                         }
                         else {
                             url = "/logs";
+                        }
+                        if (this.fromBrowser) {
+                            url = url + "/?api_key=" + this.apiKey + "&source=" + this.sourceToken;
                         }
                         payload = {
                             batch: batch,

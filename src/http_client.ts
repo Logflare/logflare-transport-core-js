@@ -12,6 +12,7 @@ interface LogflareUserOptionsI {
     apiBaseUrl?: string
     transforms?: object
     endpoint: string
+    fromBrowser: boolean
 }
 
 const defaultOptions = {
@@ -23,6 +24,8 @@ class LogflareHttpClient {
     protected readonly sourceToken: string
     protected readonly transforms?: object
     protected readonly endpoint?: string
+    protected readonly apiKey: string
+    protected readonly fromBrowser: boolean
 
     public constructor(options: LogflareUserOptionsI) {
         const {sourceToken, apiKey, transforms, endpoint} = options
@@ -35,6 +38,8 @@ class LogflareHttpClient {
         this.transforms = transforms
         this.sourceToken = sourceToken
         this.endpoint = endpoint
+        this.fromBrowser = options.fromBrowser ?? false
+        this.apiKey = apiKey
         this.axiosInstance = axios.create({
             baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
             headers: {
@@ -70,12 +75,15 @@ class LogflareHttpClient {
         return writeStream
     }
 
-    private async postLogEvents(batch: object[]) {
+    async postLogEvents(batch: object[]) {
         let url
         if (this.endpoint === "typecasting") {
             url = "/logs/typecasts"
         } else {
             url = "/logs"
+        }
+        if (this.fromBrowser) {
+            url = `${url}/?api_key=${this.apiKey}&source=${this.sourceToken}`
         }
         const payload = {
             batch,
