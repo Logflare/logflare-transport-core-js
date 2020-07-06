@@ -74,8 +74,7 @@ var LogflareHttpClient = /** @class */ (function () {
         this.axiosInstance = axios_1.default.create({
             baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
             headers: {
-                "Content-Type": "application/json",
-                "X-API-KEY": apiKey,
+                "Content-Type": "application/json"
             },
         });
         this._initializeResponseInterceptor();
@@ -115,17 +114,13 @@ var LogflareHttpClient = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         if (this.endpoint === "typecasting") {
-                            url = "/logs/typecasts";
+                            url = "/logs/typecasts?api_key=" + this.apiKey + "&source=" + this.sourceToken;
                         }
                         else {
-                            url = "/logs";
-                        }
-                        if (this.fromBrowser) {
-                            url = url + "/?api_key=" + this.apiKey + "&source=" + this.sourceToken;
+                            url = "/logs?api_key=" + this.apiKey + "&source=" + this.sourceToken;
                         }
                         payload = {
-                            batch: batch,
-                            source: this.sourceToken,
+                            batch: batch
                         };
                         _a.label = 1;
                     case 1:
