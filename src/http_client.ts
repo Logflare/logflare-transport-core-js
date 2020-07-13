@@ -11,8 +11,8 @@ interface LogflareUserOptionsI {
     apiKey: string
     apiBaseUrl?: string
     transforms?: object
-    endpoint: string
-    fromBrowser: boolean
+    endpoint?: string
+    fromBrowser?: boolean
 }
 
 const defaultOptions = {
