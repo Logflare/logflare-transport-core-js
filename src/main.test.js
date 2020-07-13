@@ -33,11 +33,10 @@ describe("LogflareHttpClient", () => {
             expect(request.headers).toMatchObject({
                 Accept: "application/json, text/plain, */*",
                 "Content-Type": "application/json",
-                "X-API-KEY": "testApiKey",
             })
 
             expect(request.config.data).toBe(
-                JSON.stringify({batch: [le], source: testSourceToken})
+                JSON.stringify({batch: [le]})
             )
 
             await request.respondWith({
@@ -106,11 +105,10 @@ describe("LogflareHttpClient with options", () => {
             expect(request.headers).toMatchObject({
                 Accept: "application/json, text/plain, */*",
                 "Content-Type": "application/json",
-                "X-API-KEY": "testApiKey",
             })
 
             expect(request.config.data).toBe(
-                '{"batch":[{"body":{"message":"info log msg","metadata":{"number":"1","number2":"1"}},"typecasts":[{"path":["metadata","number"],"from":"string","to":"float"},{"path":["metadata","number2"],"from":"string","to":"float"}]}],"source":"2222-2222"}'
+                '{"batch":[{"body":{"message":"info log msg","metadata":{"number":"1","number2":"1"}},"typecasts":[{"path":["metadata","number"],"from":"string","to":"float"},{"path":["metadata","number2"],"from":"string","to":"float"}]}]}'
             )
 
             await request.respondWith({
