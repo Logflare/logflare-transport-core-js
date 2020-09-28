@@ -83,6 +83,7 @@ var mapValuesDeep = function (obj, fn, path, typecasts) {
             return lodash_1.default.map(container, mapper);
         }
     };
+    // @ts-ignore
     return mapFn(obj, function (val, key) {
         var keyPathNext = path.concat(key);
         return lodash_1.default.isPlainObject(val) || lodash_1.default.isArray(val)

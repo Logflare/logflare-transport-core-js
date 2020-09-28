@@ -41,8 +41,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LogflareHttpClient = void 0;
 var axios_1 = __importDefault(require("axios"));
-var lodash_1 = __importDefault(require("lodash"));
-var typecasting_1 = require("./typecasting");
 var stream_1 = __importDefault(require("stream"));
 var defaultOptions = {
     apiBaseUrl: "https://api.logflare.app",
@@ -74,20 +72,16 @@ var LogflareHttpClient = /** @class */ (function () {
         this.axiosInstance = axios_1.default.create({
             baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
         });
         this._initializeResponseInterceptor();
     }
     LogflareHttpClient.prototype.addLogEvent = function (logEvent) {
-        var _a;
         return __awaiter(this, void 0, void 0, function () {
             var logEvents;
-            return __generator(this, function (_b) {
+            return __generator(this, function (_a) {
                 logEvents = Array.isArray(logEvent) ? logEvent : [logEvent];
-                if ((_a = this === null || this === void 0 ? void 0 : this.transforms) === null || _a === void 0 ? void 0 : _a.jsNumbers) {
-                    logEvents = lodash_1.default.map(logEvents, typecasting_1.applyNumberToStringTypecasting);
-                }
                 return [2 /*return*/, this.postLogEvents(logEvents)];
             });
         });
@@ -120,7 +114,7 @@ var LogflareHttpClient = /** @class */ (function () {
                             url = "/logs?api_key=" + this.apiKey + "&source=" + this.sourceToken;
                         }
                         payload = {
-                            batch: batch
+                            batch: batch,
                         };
                         _a.label = 1;
                     case 1:
@@ -141,6 +135,14 @@ var LogflareHttpClient = /** @class */ (function () {
                         return [2 /*return*/, e_1];
                     case 4: return [2 /*return*/];
                 }
+            });
+        });
+    };
+    LogflareHttpClient.prototype.addTypecasting = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                this.axiosInstance.post("/sources/");
+                return [2 /*return*/];
             });
         });
     };

@@ -2,7 +2,7 @@
 import { AxiosInstance } from "axios";
 import stream from "stream";
 interface IngestTransformsI {
-    jsNumbers: boolean;
+    numbersToFloats: boolean;
 }
 interface LogflareUserOptionsI {
     sourceToken: string;
@@ -23,6 +23,7 @@ declare class LogflareHttpClient {
     addLogEvent(logEvent: object | object[]): Promise<object>;
     insertStream(): stream.Writable;
     postLogEvents(batch: object[]): Promise<any>;
+    addTypecasting(): Promise<void>;
     private _initializeResponseInterceptor;
     private _handleResponse;
     protected _handleError: (error: any) => Promise<never>;

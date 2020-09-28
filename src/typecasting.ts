@@ -88,7 +88,7 @@ const applyNumberToStringTypecasting = (
 
 const mapValuesDeep = (
     obj: object,
-    fn,
+    fn: any,
     path: string[],
     typecasts: object[]
 ): object => {
@@ -102,6 +102,7 @@ const mapValuesDeep = (
             return _.map(container, mapper)
         }
     }
+    // @ts-ignore
     return mapFn(obj, (val: object | object[], key: string) => {
         let keyPathNext = path.concat(key)
         return _.isPlainObject(val) || _.isArray(val)
