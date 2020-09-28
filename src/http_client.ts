@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from "axios"
+import axios, {AxiosInstance, AxiosResponse} from "axios"
 import _ from "lodash"
 import {
     applyNumberToStringTypecasting,
@@ -7,7 +7,7 @@ import {
 import stream from "stream"
 
 interface IngestTransformsI {
-    jsNumbers: boolean
+    numbersToFloats: boolean
 }
 
 interface LogflareUserOptionsI {
@@ -32,7 +32,7 @@ class LogflareHttpClient {
     protected readonly fromBrowser: boolean
 
     public constructor(options: LogflareUserOptionsI) {
-        const { sourceToken, apiKey, transforms, endpoint } = options
+        const {sourceToken, apiKey, transforms, endpoint} = options
         if (!sourceToken || sourceToken == "") {
             throw "Logflare API logging transport source token is NOT configured!"
         }
@@ -47,7 +47,7 @@ class LogflareHttpClient {
         this.axiosInstance = axios.create({
             baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
         })
 
@@ -86,7 +86,7 @@ class LogflareHttpClient {
             url = `/logs?api_key=${this.apiKey}&source=${this.sourceToken}`
         }
         const payload = {
-            batch
+            batch,
         }
         try {
             return await this.axiosInstance.post(url, payload)
@@ -94,7 +94,7 @@ class LogflareHttpClient {
             if (e.response) {
                 console.error(
                     `Logflare API request failed with ${
-                    e.response.status
+                        e.response.status
                     } status: ${JSON.stringify(e.response.data)}`
                 )
             } else if (e.request) {
@@ -107,6 +107,10 @@ class LogflareHttpClient {
         }
     }
 
+    async addTypecasting() {
+        this.axiosInstance.post("/sources/")
+    }
+
     private _initializeResponseInterceptor = () => {
         this.axiosInstance.interceptors.response.use(
             this._handleResponse,
@@ -114,8 +118,8 @@ class LogflareHttpClient {
         )
     }
 
-    private _handleResponse = ({ data }: AxiosResponse) => data
+    private _handleResponse = ({data}: AxiosResponse) => data
     protected _handleError = (error: any) => Promise.reject(error)
 }
 
-export { LogflareHttpClient, LogflareUserOptionsI }
+export {LogflareHttpClient, LogflareUserOptionsI}
