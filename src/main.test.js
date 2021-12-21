@@ -6,7 +6,7 @@ const testBaseUrl = "http://non-existing.domain"
 const testSourceToken = "2222-2222"
 const apiResponseSuccess = {message: "Logged!"}
 
-describe("LogflareHttpClient", () => {
+describe.skip("LogflareHttpClient", () => {
     let httpClient
     let axiosInstance
     beforeEach(() => {
@@ -35,9 +35,7 @@ describe("LogflareHttpClient", () => {
                 "Content-Type": "application/json",
             })
 
-            expect(request.config.data).toBe(
-                JSON.stringify({batch: [le]})
-            )
+            expect(request.config.data).toBe(JSON.stringify({batch: [le]}))
 
             await request.respondWith({
                 status: 200,

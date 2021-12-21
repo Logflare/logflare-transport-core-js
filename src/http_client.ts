@@ -1,9 +1,3 @@
-import axios, {AxiosInstance, AxiosResponse} from "axios"
-import _ from "lodash"
-import {
-    applyNumberToStringTypecasting,
-    applyCustomTypecasting,
-} from "./typecasting"
 import stream from "stream"
 
 interface IngestTransformsI {
@@ -23,13 +17,25 @@ const defaultOptions = {
     apiBaseUrl: "https://api.logflare.app",
 }
 
+class NetworkError extends Error {
+    name = "NetworkError"
+
+    constructor(
+        message: string,
+        public response: Response,
+        public data: unknown
+    ) {
+        super(message)
+    }
+}
+
 class LogflareHttpClient {
-    protected axiosInstance: AxiosInstance
     protected readonly sourceToken: string
     protected readonly transforms?: IngestTransformsI
     protected readonly endpoint?: string
     protected readonly apiKey: string
     protected readonly fromBrowser: boolean
+    protected readonly apiBaseUrl: string
 
     public constructor(options: LogflareUserOptionsI) {
         const {sourceToken, apiKey, transforms, endpoint} = options
@@ -44,14 +50,7 @@ class LogflareHttpClient {
         this.endpoint = endpoint
         this.fromBrowser = options.fromBrowser ?? false
         this.apiKey = apiKey
-        this.axiosInstance = axios.create({
-            baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-
-        this._initializeResponseInterceptor()
+        this.apiBaseUrl = options.apiBaseUrl || defaultOptions.apiBaseUrl
     }
 
     public async addLogEvent(logEvent: object | object[]): Promise<object> {
@@ -76,28 +75,48 @@ class LogflareHttpClient {
     }
 
     async postLogEvents(batch: object[]) {
-        let url
+        let path
         if (this.endpoint === "typecasting") {
-            url = `/logs/typecasts?api_key=${this.apiKey}&source=${this.sourceToken}`
+            path = `/logs/typecasts?api_key=${this.apiKey}&source=${this.sourceToken}`
         } else {
-            url = `/logs?api_key=${this.apiKey}&source=${this.sourceToken}`
+            path = `/logs?api_key=${this.apiKey}&source=${this.sourceToken}`
         }
         const payload = {
             batch,
         }
         try {
-            return await this.axiosInstance.post(url, payload)
-        } catch (e) {
-            if (e.response) {
-                console.error(
-                    `Logflare API request failed with ${
-                        e.response.status
-                    } status: ${JSON.stringify(e.response.data)}`
+            const url = new URL(path, this.apiBaseUrl)
+
+            const response = await fetch(url.toString(), {
+                body: JSON.stringify(payload),
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new NetworkError(
+                    `Network response was not ok for "${url}"`,
+                    response,
+                    data
                 )
-            } else if (e.request) {
-                console.error(`Logflare API request failed: ${e.request}`)
-            } else {
-                console.error(e.message)
+            }
+
+            return data
+        } catch (e) {
+            if (e) {
+                if (e instanceof NetworkError && e.response) {
+                    console.error(
+                        `Logflare API request failed with ${
+                            e.response.status
+                        } status: ${JSON.stringify(e.data)}`
+                    )
+                } else if (e instanceof Error) {
+                    console.error(e.message)
+                }
             }
 
             return e
@@ -105,18 +124,15 @@ class LogflareHttpClient {
     }
 
     async addTypecasting() {
-        this.axiosInstance.post("/sources/")
-    }
+        const url = new URL("/sources/", this.apiBaseUrl)
 
-    private _initializeResponseInterceptor = () => {
-        this.axiosInstance.interceptors.response.use(
-            this._handleResponse,
-            this._handleError
-        )
+        await fetch(url.toString(), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
     }
-
-    private _handleResponse = ({data}: AxiosResponse) => data
-    protected _handleError = (error: any) => Promise.reject(error)
 }
 
 export {LogflareHttpClient, LogflareUserOptionsI}
