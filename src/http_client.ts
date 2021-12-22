@@ -95,7 +95,7 @@ class LogflareHttpClient {
                     } status: ${JSON.stringify(e.response.data)}`
                 )
             } else if (e.request) {
-                console.error(`Logflare API request failed: ${e.request}`)
+                console.error(`Logflare API request failed: ${JSON.stringify(e.request)}`)
             } else {
                 console.error(e.message)
             }
