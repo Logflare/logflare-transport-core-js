@@ -127,7 +127,8 @@ var LogflareHttpClient = /** @class */ (function () {
                             console.error("Logflare API request failed with " + e_1.response.status + " status: " + JSON.stringify(e_1.response.data));
                         }
                         else if (e_1.request) {
-                            console.error("Logflare API request failed: " + JSON.stringify(e_1.request));
+                            console.error("Logflare API request failed: ");
+                            console.error(e_1.request);
                         }
                         else {
                             console.error(e_1.message);
