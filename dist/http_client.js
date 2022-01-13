@@ -1,4 +1,19 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -40,23 +55,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LogflareHttpClient = void 0;
-var axios_1 = __importDefault(require("axios"));
 var stream_1 = __importDefault(require("stream"));
 var defaultOptions = {
     apiBaseUrl: "https://api.logflare.app",
 };
+var NetworkError = /** @class */ (function (_super) {
+    __extends(NetworkError, _super);
+    function NetworkError(message, response, data) {
+        var _this = _super.call(this, message) || this;
+        _this.response = response;
+        _this.data = data;
+        _this.name = "NetworkError";
+        return _this;
+    }
+    return NetworkError;
+}(Error));
 var LogflareHttpClient = /** @class */ (function () {
     function LogflareHttpClient(options) {
-        var _this = this;
         var _a;
-        this._initializeResponseInterceptor = function () {
-            _this.axiosInstance.interceptors.response.use(_this._handleResponse, _this._handleError);
-        };
-        this._handleResponse = function (_a) {
-            var data = _a.data;
-            return data;
-        };
-        this._handleError = function (error) { return Promise.reject(error); };
         var sourceToken = options.sourceToken, apiKey = options.apiKey, transforms = options.transforms, endpoint = options.endpoint;
         if (!sourceToken || sourceToken == "") {
             throw "Logflare API logging transport source token is NOT configured!";
@@ -69,13 +85,7 @@ var LogflareHttpClient = /** @class */ (function () {
         this.endpoint = endpoint;
         this.fromBrowser = (_a = options.fromBrowser) !== null && _a !== void 0 ? _a : false;
         this.apiKey = apiKey;
-        this.axiosInstance = axios_1.default.create({
-            baseURL: options.apiBaseUrl || defaultOptions.apiBaseUrl,
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-        this._initializeResponseInterceptor();
+        this.apiBaseUrl = options.apiBaseUrl || defaultOptions.apiBaseUrl;
     }
     LogflareHttpClient.prototype.addLogEvent = function (logEvent) {
         return __awaiter(this, void 0, void 0, function () {
@@ -103,46 +113,74 @@ var LogflareHttpClient = /** @class */ (function () {
     };
     LogflareHttpClient.prototype.postLogEvents = function (batch) {
         return __awaiter(this, void 0, void 0, function () {
-            var url, payload, e_1;
+            var path, payload, url, response, data, e_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (this.endpoint === "typecasting") {
-                            url = "/logs/typecasts?api_key=" + this.apiKey + "&source=" + this.sourceToken;
+                            path = "/logs/typecasts?api_key=".concat(this.apiKey, "&source=").concat(this.sourceToken);
                         }
                         else {
-                            url = "/logs?api_key=" + this.apiKey + "&source=" + this.sourceToken;
+                            path = "/logs?api_key=".concat(this.apiKey, "&source=").concat(this.sourceToken);
                         }
                         payload = {
                             batch: batch,
                         };
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, this.axiosInstance.post(url, payload)];
-                    case 2: return [2 /*return*/, _a.sent()];
+                        _a.trys.push([1, 4, , 5]);
+                        url = new URL(path, this.apiBaseUrl);
+                        return [4 /*yield*/, fetch(url.toString(), {
+                                body: JSON.stringify(payload),
+                                method: "POST",
+                                headers: {
+                                    Accept: "application/json, text/plain, */*",
+                                    "Content-Type": "application/json",
+                                },
+                            })];
+                    case 2:
+                        response = _a.sent();
+                        return [4 /*yield*/, response.json()];
                     case 3:
+                        data = _a.sent();
+                        if (!response.ok) {
+                            throw new NetworkError("Network response was not ok for \"".concat(url, "\""), response, data);
+                        }
+                        return [2 /*return*/, data];
+                    case 4:
                         e_1 = _a.sent();
-                        if (e_1.response) {
-                            console.error("Logflare API request failed with " + e_1.response.status + " status: " + JSON.stringify(e_1.response.data));
-                        }
-                        else if (e_1.request) {
-                            console.error("Logflare API request failed: " + e_1.request);
-                        }
-                        else {
-                            console.error(e_1.message);
+                        if (e_1) {
+                            if (e_1 instanceof NetworkError && e_1.response) {
+                                console.error("Logflare API request failed with ".concat(e_1.response.status, " status: ").concat(JSON.stringify(e_1.data)));
+                            }
+                            else if (e_1 instanceof Error) {
+                                console.error(e_1.message);
+                            }
                         }
                         return [2 /*return*/, e_1];
-                    case 4: return [2 /*return*/];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
     };
     LogflareHttpClient.prototype.addTypecasting = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var url;
             return __generator(this, function (_a) {
-                this.axiosInstance.post("/sources/");
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0:
+                        url = new URL("/sources/", this.apiBaseUrl);
+                        return [4 /*yield*/, fetch(url.toString(), {
+                                method: "POST",
+                                headers: {
+                                    Accept: "application/json, text/plain, */*",
+                                    "Content-Type": "application/json",
+                                },
+                            })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
             });
         });
     };

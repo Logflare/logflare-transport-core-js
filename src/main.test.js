@@ -1,124 +1,154 @@
-import moxios from "moxios"
-
 import {LogflareHttpClient} from "./main"
 
+const testApiKey = "testApiKey"
 const testBaseUrl = "http://non-existing.domain"
 const testSourceToken = "2222-2222"
 const apiResponseSuccess = {message: "Logged!"}
 
 describe("LogflareHttpClient", () => {
     let httpClient
-    let axiosInstance
+    let nativeFetch
+
+    beforeAll(() => {
+        nativeFetch = global.fetch
+    })
+
     beforeEach(() => {
         httpClient = new LogflareHttpClient({
-            apiKey: "testApiKey",
-            sourceToken: "2222-2222",
+            apiKey: testApiKey,
+            sourceToken: testSourceToken,
             apiBaseUrl: "http://non-existing.domain",
         })
-        const axiosInstance = httpClient.axiosInstance
-        moxios.install(axiosInstance)
     })
 
     afterEach(() => {
-        moxios.uninstall(axiosInstance)
+        global.fetch.mockClear()
     })
 
-    it("successfully send a post request", async (done) => {
-        const le = {message: "info log msg", metadata: {p1: "v1"}}
+    afterAll(() => {
+        global.fetch = nativeFetch
+    })
 
-        moxios.wait(async () => {
-            let request = moxios.requests.mostRecent()
-
-            expect(request.config.baseURL).toBe(testBaseUrl)
-            expect(request.headers).toMatchObject({
-                Accept: "application/json, text/plain, */*",
-                "Content-Type": "application/json",
-            })
-
-            expect(request.config.data).toBe(
-                JSON.stringify({batch: [le]})
-            )
-
-            await request.respondWith({
+    it("successfully send a post request", async () => {
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                json: () => Promise.resolve(apiResponseSuccess),
+                ok: true,
                 status: 200,
-                response: apiResponseSuccess,
             })
-            done()
-        })
+        )
 
+        const le = {message: "info log msg", metadata: {p1: "v1"}}
         const response = await httpClient.addLogEvent(le)
+
         expect(response).toMatchObject(apiResponseSuccess)
+        expect(global.fetch).toHaveBeenCalledWith(
+            `${testBaseUrl}/logs?api_key=${testApiKey}&source=${testSourceToken}`,
+            {
+                body: JSON.stringify({batch: [le]}),
+                method: "POST",
+                headers: {
+                    Accept: "application/json, text/plain, */*",
+                    "Content-Type": "application/json",
+                },
+            }
+        )
     })
 
     let consoleLogData = ""
     const storeLog = (inputs) => (consoleLogData += inputs)
-    it("prints to console on error", async (done) => {
+    it("prints to console on error", async () => {
+        const errorResponse = {message: "Schema validation error"}
+
         console["error"] = jest.fn(storeLog)
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                json: () => Promise.resolve(errorResponse),
+                ok: false,
+                status: 406,
+            })
+        )
 
         const le = {message: "info log msg", metadata: {p1: "v1"}}
 
-        moxios.wait(async () => {
-            let request = moxios.requests.mostRecent()
-
-            await request.respondWith({
-                status: 406,
-                response: {message: "Schema validation error"},
-            })
-            done()
-        })
-
         await httpClient.addLogEvent(le)
         expect(consoleLogData).toBe(
-            'Logflare API request failed with 406 status: {"message":"Schema validation error"}'
+            `Logflare API request failed with 406 status: ${JSON.stringify(
+                errorResponse
+            )}`
         )
     })
 })
 
 describe("LogflareHttpClient with options", () => {
     let httpClient
-    let axiosInstance
+    let nativeFetch
+
+    beforeAll(() => {
+        nativeFetch = global.fetch
+    })
+
     beforeEach(() => {
         httpClient = new LogflareHttpClient({
-            apiKey: "testApiKey",
-            sourceToken: "2222-2222",
-            apiBaseUrl: "http://non-existing.domain",
+            apiKey: testApiKey,
+            sourceToken: testSourceToken,
+            apiBaseUrl: testBaseUrl,
             transforms: {jsNumbers: true},
         })
-        const axiosInstance = httpClient.axiosInstance
-        moxios.install(axiosInstance)
     })
 
     afterEach(() => {
-        moxios.uninstall(axiosInstance)
+        global.fetch.mockClear()
     })
 
-    it.skip("transforms js numbers if configured", async (done) => {
+    afterAll(() => {
+        global.fetch = nativeFetch
+    })
+
+    it.skip("transforms js numbers if configured", async () => {
         const le = {
             message: "info log msg",
             metadata: {number: 1, number2: 1.0},
         }
 
-        moxios.wait(async () => {
-            let request = moxios.requests.mostRecent()
-
-            expect(request.config.baseURL).toBe(testBaseUrl)
-            expect(request.headers).toMatchObject({
-                Accept: "application/json, text/plain, */*",
-                "Content-Type": "application/json",
-            })
-
-            expect(request.config.data).toBe(
-                '{"batch":[{"body":{"message":"info log msg","metadata":{"number":"1","number2":"1"}},"typecasts":[{"path":["metadata","number"],"from":"string","to":"float"},{"path":["metadata","number2"],"from":"string","to":"float"}]}]}'
-            )
-
-            await request.respondWith({
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                json: () => Promise.resolve(apiResponseSuccess),
+                ok: true,
                 status: 200,
-                response: apiResponseSuccess,
             })
-            done()
-        })
+        )
 
         const response = await httpClient.addLogEvent(le)
         expect(response).toMatchObject(apiResponseSuccess)
+        expect(global.fetch).toHaveBeenCalledWith(
+            `${testBaseUrl}/logs?api_key=${testApiKey}&source=${testSourceToken}`,
+            {
+                body: JSON.stringify({
+                    batch: [
+                        {
+                            body: le,
+                            typecasts: [
+                                {
+                                    path: ["metadata", "number"],
+                                    from: "string",
+                                    to: "float",
+                                },
+                                {
+                                    path: ["metadata", "number2"],
+                                    from: "string",
+                                    to: "float",
+                                },
+                            ],
+                        },
+                    ],
+                }),
+                method: "POST",
+                headers: {
+                    Accept: "application/json, text/plain, */*",
+                    "Content-Type": "application/json",
+                },
+            }
+        )
     })
 })
