@@ -50,12 +50,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LogflareHttpClient = void 0;
-var stream_1 = __importDefault(require("stream"));
 var defaultOptions = {
     apiBaseUrl: "https://api.logflare.app",
 };
@@ -95,21 +91,6 @@ var LogflareHttpClient = /** @class */ (function () {
                 return [2 /*return*/, this.postLogEvents(logEvents)];
             });
         });
-    };
-    LogflareHttpClient.prototype.insertStream = function () {
-        var self = this;
-        var writeStream = new stream_1.default.Writable({
-            objectMode: true,
-            highWaterMark: 1,
-        });
-        writeStream._write = function (chunk, encoding, callback) {
-            self.addLogEvent(chunk)
-                .then(function () {
-                callback(null);
-            })
-                .catch(callback);
-        };
-        return writeStream;
     };
     LogflareHttpClient.prototype.postLogEvents = function (batch) {
         return __awaiter(this, void 0, void 0, function () {

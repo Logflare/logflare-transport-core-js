@@ -1,5 +1,3 @@
-import stream from "stream"
-
 interface IngestTransformsI {
     numbersToFloats: boolean
 }
@@ -56,22 +54,6 @@ class LogflareHttpClient {
     public async addLogEvent(logEvent: object | object[]): Promise<object> {
         let logEvents = Array.isArray(logEvent) ? logEvent : [logEvent]
         return this.postLogEvents(logEvents)
-    }
-
-    public insertStream() {
-        const self = this
-        const writeStream = new stream.Writable({
-            objectMode: true,
-            highWaterMark: 1,
-        })
-        writeStream._write = function (chunk, encoding, callback) {
-            self.addLogEvent(chunk)
-                .then(() => {
-                    callback(null)
-                })
-                .catch(callback)
-        }
-        return writeStream
     }
 
     async postLogEvents(batch: object[]) {
