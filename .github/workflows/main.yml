@@ -19,7 +19,7 @@ jobs:
       - run: git config --global user.name "GitHub Action"
       - run: yarn
       - run: yarn test
-      - run: tsc
+      - run: npm run build
       - run: yarn publish --access public --tag dev --new-version $(npm info . version)-$(echo ${GITHUB_SHA} | cut -c1-8)
         env:
           CI: true
