@@ -19,7 +19,7 @@ jobs:
       - run: yarn test
       - run: yarn build
       - name: Publish production package to npm
-        run: yarn publish --access public --tag latest --new-version $(npm info . version)
+        run: yarn publish --access public --tag latest --new-version $(npm run vsn)
         env:
           CI: true
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
