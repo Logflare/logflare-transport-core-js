@@ -21,4 +21,4 @@ jobs:
       - run: yarn
       - run: yarn test
       - run: yarn build
-      - run: yarn pack
+      - run: npm pack --dry-run

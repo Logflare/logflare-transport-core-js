@@ -20,7 +20,7 @@ jobs:
       - run: yarn
       - run: yarn test
       - run: yarn build
-      - run: yarn pack
+      - run: npm pack --dry-run
       - name: Publish dev package to npm
         run: yarn publish --access public --tag dev --new-version $(npm run --silent vsn)-$(echo ${GITHUB_SHA} | cut -c1-8)
         env:

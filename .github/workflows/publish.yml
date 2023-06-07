@@ -18,7 +18,7 @@ jobs:
       - run: yarn
       - run: yarn test
       - run: yarn build
-      - run: yarn pack
+      - run: npm pack --dry-run
       - name: Publish production package to npm
         run: yarn publish --access public --tag latest --new-version $(npm run --silent vsn)
         env:
