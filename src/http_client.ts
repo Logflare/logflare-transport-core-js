@@ -9,6 +9,9 @@ interface LogflareUserOptionsI {
     transforms?: IngestTransformsI
     endpoint?: string
     fromBrowser?: boolean
+    onError?: ((payload: {
+        batch: object[];
+    }, err: Error) => void) | undefined
 }
 
 const defaultOptions = {
@@ -34,6 +37,12 @@ class LogflareHttpClient {
     protected readonly apiKey: string
     protected readonly fromBrowser: boolean
     protected readonly apiBaseUrl: string
+    /**
+     * onError takes in an optional callback function to handle any errors returned by logflare
+     */
+    protected readonly onError?: ((payload: {
+        batch: object[];
+    }, err: Error) => void) | undefined
 
     public constructor(options: LogflareUserOptionsI) {
         const {sourceToken, apiKey, transforms, endpoint} = options
@@ -49,6 +58,7 @@ class LogflareHttpClient {
         this.fromBrowser = options.fromBrowser ?? false
         this.apiKey = apiKey
         this.apiBaseUrl = options.apiBaseUrl || defaultOptions.apiBaseUrl
+        this.onError = options.onError
     }
 
     public async addLogEvent(logEvent: object | object[]): Promise<object> {
@@ -91,14 +101,17 @@ class LogflareHttpClient {
             return data
         } catch (e) {
             if (e) {
-                if (e instanceof NetworkError && e.response) {
-                    console.error(
-                        `Logflare API request failed with ${
-                            e.response.status
-                        } status: ${JSON.stringify(e.data)}`
-                    )
-                } else if (e instanceof Error) {
-                    console.error(e.message)
+                if (e instanceof Error) {
+                    if (e instanceof NetworkError && e.response) {
+                        console.error(
+                            `Logflare API request failed with ${
+                                e.response.status
+                            } status: ${JSON.stringify(e.data)}`
+                        )
+                    } else {
+                        console.error(e.message)
+                    }    
+                    this.onError?.(payload, e)
                 }
             }
 
