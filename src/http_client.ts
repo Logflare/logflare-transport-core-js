@@ -9,9 +9,14 @@ interface LogflareUserOptionsI {
     transforms?: IngestTransformsI
     endpoint?: string
     fromBrowser?: boolean
-    onError?: ((payload: {
-        batch: object[];
-    }, err: Error) => void) | undefined
+    onError?:
+        | ((
+              payload: {
+                  batch: object[]
+              },
+              err: Error
+          ) => void)
+        | undefined
 }
 
 const defaultOptions = {
@@ -40,9 +45,14 @@ class LogflareHttpClient {
     /**
      * onError takes in an optional callback function to handle any errors returned by logflare
      */
-    protected readonly onError?: ((payload: {
-        batch: object[];
-    }, err: Error) => void) | undefined
+    protected readonly onError?:
+        | ((
+              payload: {
+                  batch: object[]
+              },
+              err: Error
+          ) => void)
+        | undefined
 
     public constructor(options: LogflareUserOptionsI) {
         const {sourceToken, apiKey, transforms, endpoint} = options
@@ -100,19 +110,17 @@ class LogflareHttpClient {
 
             return data
         } catch (e) {
-            if (e) {
-                if (e instanceof Error) {
-                    if (e instanceof NetworkError && e.response) {
-                        console.error(
-                            `Logflare API request failed with ${
-                                e.response.status
-                            } status: ${JSON.stringify(e.data)}`
-                        )
-                    } else {
-                        console.error(e.message)
-                    }    
-                    this.onError?.(payload, e)
+            if (e && e instanceof Error) {
+                if (e instanceof NetworkError && e.response) {
+                    console.error(
+                        `Logflare API request failed with ${
+                            e.response.status
+                        } status: ${JSON.stringify(e.data)}`
+                    )
+                } else {
+                    console.error(e.message)
                 }
+                this.onError?.(payload, e)
             }
 
             return e
