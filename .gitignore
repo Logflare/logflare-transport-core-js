@@ -22,4 +22,4 @@ jspm_packages/
 # JetBrains IDEA
 .idea/
 
-dist/
+dist
