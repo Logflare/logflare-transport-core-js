@@ -1,9 +1,7 @@
-name: main workflow
+name: Publish to npm registry (manual)
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,8 +18,8 @@ jobs:
       - run: yarn
       - run: yarn test
       - run: yarn build
-      - name: Publish dev package to npm
-        run: yarn publish --access public --tag dev --new-version $(npm info . version)-$(echo ${GITHUB_SHA} | cut -c1-8)
+      - name: Publish production package to npm
+        run: yarn publish --access public --tag latest --new-version $(npm info . version)
         env:
           CI: true
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
