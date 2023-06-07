@@ -11,13 +11,14 @@ jobs:
       - name: build
         uses: actions/setup-node@v1
         with:
-          node-version: "14.x"
+          node-version: "16.x"
           registry-url: "https://registry.npmjs.org"
       - run: git config --global user.email "github-action@users.noreply.github.com"
       - run: git config --global user.name "GitHub Action"
       - run: yarn
       - run: yarn test
       - run: yarn build
+      - run: npm pack --dry-run
       - name: Publish production package to npm
         run: yarn publish --access public --tag latest --new-version $(npm run --silent vsn)
         env:
