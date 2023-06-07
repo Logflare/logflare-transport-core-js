@@ -7,6 +7,8 @@
         "logging"
     ],
     "main": "dist/main.js",
+
+  "files": ["/dist", "/src"],
     "license": "MIT",
     "dependencies": {},
     "devDependencies": {
