@@ -28,7 +28,7 @@
     "build": "tsc",
     "test": "jest",
     "test.watch": "jest --watch",
-    "vsn": "node -e \"console.log(require('./package.json').version);\"",
+    "vsn": "node -e \"console.log(require('./package.json').version);\""
   },
   "repository": {
     "type": "git",
