@@ -1,40 +1,38 @@
 {
-    "name": "logflare-transport-core",
-    "version": "0.3.3",
-    "description": "A common core for Logflare javascript transports.",
-    "keywords": [
-        "logflare",
-        "logging"
-    ],
-    "main": "dist/main.js",
-
-  "files": ["/dist", "/src"],
-    "license": "MIT",
-    "dependencies": {},
-    "devDependencies": {
-        "@babel/core": "^7.10.0",
-        "@babel/preset-env": "^7.10.0",
-        "@babel/preset-typescript": "^7.9.0",
-        "@types/node": "^14.0",
-        "babel-jest": "^26.0.1",
-        "jest": "^26.0.1",
-        "typescript": "^4.5.4"
-    },
-    "scripts": {
-        "build": "tsc",
-        "test": "jest",
-        "test.watch": "jest --watch",
-        "vsn": "node -e \"console.log(require('./package.json').version);\""
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/logflare/logflare-transport-core-js.git"
-    },
-    "bugs": {
-        "url": "https://github.com/Logflare/logflare-transport-core-js/issues"
-    },
-    "types": "dist/main.d.ts",
-    "jest": {
-        "rootDir": "src"
-    }
+  "name": "logflare-transport-core",
+  "version": "0.4.0",
+  "description": "A common core for Logflare javascript transports.",
+  "keywords": [
+    "logflare",
+    "logging"
+  ],
+  "main": "dist/main.js",
+  "files": [
+    "/dist",
+    "/src"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "test.watch": "vitest --watch",
+    "format": "prettier --write .",
+    "check:format": "prettier --check .",
+    "vsn": "node -e \"console.log(require('./package.json').version);\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logflare/logflare-transport-core-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Logflare/logflare-transport-core-js/issues"
+  },
+  "type": "module",
+  "types": "dist/main.d.ts"
 }
