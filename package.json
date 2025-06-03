@@ -33,6 +33,5 @@
   "bugs": {
     "url": "https://github.com/Logflare/logflare-transport-core-js/issues"
   },
-  "type": "module",
   "types": "dist/main.d.ts"
 }
