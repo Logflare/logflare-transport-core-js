@@ -362,7 +362,9 @@ describe("HttpClient request timeout", () => {
     vi.restoreAllMocks();
   });
 
-  const createClient = (options: { requestTimeout?: number } = {}) =>
+  const createClient = (
+    options: { requestTimeout?: number; debug?: boolean } = {},
+  ) =>
     new HttpClient({
       apiKey: testApiKey,
       sourceToken: testSourceToken,
@@ -403,47 +405,142 @@ describe("HttpClient request timeout", () => {
     expect(timeout).not.toHaveBeenCalled();
   });
 
-  it("sends without a timeout when requestTimeout is 0", async () => {
-    respond = "ok";
-
-    const result = await createClient({ requestTimeout: 0 }).postLogEvents([
-      le,
-    ]);
-
-    expect(result).toStrictEqual(apiResponseSuccess);
-    expect(onError).not.toHaveBeenCalled();
-  });
-
   it.each([
-    ["a fractional value", 1500.5],
-    ["a value above the largest timer delay", 2 ** 31],
+    ["0", 0],
+    ["above the largest timer delay", 2 ** 31],
     ["Infinity", Infinity],
+    ["negative", -1],
+    ["NaN", NaN],
   ])(
-    "still sends with %s as requestTimeout",
+    "sends without a timeout when requestTimeout is %s",
     async (_label, requestTimeout) => {
       respond = "ok";
+      const timeout = vi.spyOn(AbortSignal, "timeout");
 
       const result = await createClient({ requestTimeout }).postLogEvents([le]);
 
       expect(result).toStrictEqual(apiResponseSuccess);
+      expect(timeout).not.toHaveBeenCalled();
       expect(onError).not.toHaveBeenCalled();
     },
   );
 
-  it("sends without a timeout where AbortSignal.timeout is unavailable", async () => {
+  it("rounds a fractional requestTimeout down", async () => {
     respond = "ok";
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+
+    const result = await createClient({ requestTimeout: 1500.5 }).postLogEvents(
+      [le],
+    );
+
+    expect(result).toStrictEqual(apiResponseSuccess);
+    expect(timeout).toHaveBeenCalledWith(1500);
+  });
+
+  it.each([-1, NaN])(
+    "warns about a requestTimeout of %s when debug is on",
+    (requestTimeout) => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      createClient({ requestTimeout, debug: true });
+
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toContain(String(requestTimeout));
+    },
+  );
+
+  it("does not warn about an invalid requestTimeout when debug is off", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    createClient({ requestTimeout: -1 });
+
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it.each([0, 5000, Infinity])(
+    "does not warn about a requestTimeout of %s",
+    (requestTimeout) => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      createClient({ requestTimeout, debug: true });
+
+      expect(warn).not.toHaveBeenCalled();
+    },
+  );
+
+  it("uses the largest timer delay as requestTimeout", async () => {
+    respond = "ok";
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+
+    await createClient({ requestTimeout: 2147483647 }).postLogEvents([le]);
+
+    expect(timeout).toHaveBeenCalledWith(2147483647);
+  });
+
+  // Runs the callback on a runtime without AbortSignal.timeout, or without
+  // AbortSignal at all.
+  const withoutTimeoutSupport = async (
+    missing: "timeout" | "AbortSignal",
+    run: () => Promise<void> | void,
+  ) => {
     const original = AbortSignal.timeout;
-    (AbortSignal as any).timeout = undefined;
-
+    if (missing === "timeout") {
+      (AbortSignal as any).timeout = undefined;
+    } else {
+      vi.stubGlobal("AbortSignal", undefined);
+    }
     try {
-      const result = await createClient({ requestTimeout: 5000 }).postLogEvents(
-        [le],
-      );
-
-      expect(result).toStrictEqual(apiResponseSuccess);
-      expect(onError).not.toHaveBeenCalled();
+      await run();
     } finally {
+      vi.unstubAllGlobals();
       AbortSignal.timeout = original;
     }
-  });
+  };
+
+  it.each(["timeout", "AbortSignal"] as const)(
+    "sends without a timeout where %s is unavailable",
+    async (missing) => {
+      respond = "ok";
+
+      await withoutTimeoutSupport(missing, async () => {
+        const result = await createClient({
+          requestTimeout: 5000,
+        }).postLogEvents([le]);
+
+        expect(result).toStrictEqual(apiResponseSuccess);
+        expect(onError).not.toHaveBeenCalled();
+      });
+    },
+  );
+
+  it.each(["timeout", "AbortSignal"] as const)(
+    "warns when debug is on and %s is unavailable",
+    async (missing) => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      await withoutTimeoutSupport(missing, () => {
+        createClient({ requestTimeout: 5000, debug: true });
+      });
+
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toContain("AbortSignal.timeout");
+    },
+  );
+
+  it.each([
+    ["no requestTimeout is set", { debug: true }],
+    ["requestTimeout is 0", { requestTimeout: 0, debug: true }],
+    ["debug is off", { requestTimeout: 5000 }],
+  ])(
+    "does not warn about missing AbortSignal.timeout when %s",
+    async (_label, options) => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      await withoutTimeoutSupport("timeout", () => {
+        createClient(options);
+      });
+
+      expect(warn).not.toHaveBeenCalled();
+    },
+  );
 });
