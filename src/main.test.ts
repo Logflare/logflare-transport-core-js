@@ -360,7 +360,6 @@ describe("HttpClient request timeout", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    server.closeAllConnections();
   });
 
   const createClient = (options: { requestTimeout?: number } = {}) =>
